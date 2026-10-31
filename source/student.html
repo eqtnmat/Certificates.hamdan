@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>مكتب الشهادات والتوصيات</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Tinos:wght@400;700&family=Arimo:wght@400;700&family=Amiri:wght@400;700&family=Fraunces:wght@400;600&family=Source+Serif+4:wght@400;600&family=Reem+Kufi:wght@500;700&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+<style>
+/* Layout: one narrow column, framed like the certificates it issues */
+:root{
+  --bg:#F4F5F2; --surface:#FFFFFF; --ink:#2C2A21; --muted:#6C6A5B; --line:#DEDDD3;
+  --frame:#4B4733; --accent:#2F6E8C; --accent-soft:#E3EEF3; --accent-ink:#FFFFFF;
+  --ok:#1F7A4A; --ok-bg:#E2F1E8; --warn:#9A5B00; --warn-bg:#FBEFD8; --bad:#A23A2E; --bad-bg:#F7E2DE; --info:#5B4B8A; --info-bg:#ECE8F6;
+  --ui:"IBM Plex Sans Arabic","Segoe UI",Tahoma,sans-serif; --serif:"Tinos","Times New Roman",serif; --paper:#FFFFFF;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#16160F; --surface:#201F17; --ink:#ECEADF; --muted:#A6A392; --line:#38362A;
+    --frame:#BDB58E; --accent:#7DB8D4; --accent-soft:#1D3340; --accent-ink:#0D1F28;
+    --ok:#73D19D; --ok-bg:#163223; --warn:#F2B866; --warn-bg:#3A2A10; --bad:#F0948A; --bad-bg:#3A1C18; --info:#B9A9F0; --info-bg:#2A2440; color-scheme:dark; }
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.65 var(--ui);}
+.wrap{max-width:760px;margin:0 auto;padding-block:24px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{line-height:1.3;margin:0;text-wrap:balance}
+h1{font-size:23px;font-weight:700} h2{font-size:18px;font-weight:700} h3{font-size:15px;font-weight:600}
+p{margin:0}
+.muted{color:var(--muted)} .small{font-size:13px}
+.brandbar{display:flex;align-items:center;gap:12px;justify-content:space-between;padding-bottom:16px;margin-bottom:20px;border-bottom:3px double var(--frame)}
+.brandbar .t{display:flex;flex-direction:column;min-width:0}
+.brandbar .t span{font-family:var(--serif);letter-spacing:.14em;text-transform:uppercase;font-size:11px;color:var(--accent)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:20px}
+.stack{display:flex;flex-direction:column;gap:16px}
+.row{display:flex;gap:12px;flex-wrap:wrap}.row>*{flex:1 1 200px;min-width:0}
+label{display:flex;flex-direction:column;gap:6px;font-weight:500;font-size:14px}
+label .hint{font-weight:400;color:var(--muted);font-size:12.5px}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;width:100%}
+textarea{min-height:96px;resize:vertical}
+input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+[dir=ltr]{text-align:left}
+button,.btnlink{font:inherit;cursor:pointer;border-radius:8px;border:1px solid transparent;padding:10px 16px;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+.btn{background:var(--accent);color:var(--accent-ink)} .btn2{background:transparent;color:var(--accent);border-color:var(--accent)} .btn3{background:transparent;color:var(--muted);border-color:var(--line)}
+button:disabled{opacity:.55;cursor:default}
+.tabs{display:flex;gap:4px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:4px}
+.tabs button{flex:1;background:transparent;color:var(--muted);padding:8px 6px;font-size:14px}
+.tabs button[aria-selected=true]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.err{background:var(--bad-bg);color:var(--bad);padding:10px 12px;border-radius:8px;font-size:14px}
+.okmsg{background:var(--ok-bg);color:var(--ok);padding:10px 12px;border-radius:8px;font-size:14px}
+.avatar{width:44px;height:44px;border-radius:50%;object-fit:cover;background:var(--line);flex:none}
+.photo-pick{display:flex;align-items:center;gap:14px}.photo-pick .avatar{width:72px;height:72px}
+.me{display:flex;align-items:center;gap:10px;flex:none}
+.choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.choice{text-align:start;background:var(--surface);border:1px solid var(--line);color:var(--ink);padding:16px;border-radius:10px;display:flex;flex-direction:column;align-items:flex-start;gap:4px;font-weight:400}
+.choice b{font-size:15px} .choice:hover{border-color:var(--accent)}
+.choice[aria-pressed=true]{border-color:var(--accent);background:var(--accent-soft)}
+.tpls{display:grid;gap:10px}
+.tpl{flex-direction:row;justify-content:space-between;align-items:center;width:100%}
+.en{font-family:var(--serif);direction:ltr;text-align:left}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.card-h{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;padding:3px 10px;border-radius:999px;white-space:nowrap}
+.chip::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.s-submitted{background:var(--warn-bg);color:var(--warn)} .s-needs_info{background:var(--bad-bg);color:var(--bad)}
+.s-edit_requested{background:var(--info-bg);color:var(--info)} .s-approved{background:var(--ok-bg);color:var(--ok)} .s-rejected{background:var(--line);color:var(--muted)}
+.meta{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.note{border-inline-start:3px solid var(--accent);padding:6px 12px;background:var(--accent-soft);border-radius:0 6px 6px 0;font-size:14px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.radio{flex-direction:row;align-items:center;gap:8px;font-weight:400}.radio input{width:auto}
+.empty{text-align:center;padding:28px 16px;color:var(--muted);border:1px dashed var(--line);border-radius:10px}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:s .8s linear infinite;vertical-align:-2px}
+@keyframes s{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spin{animation:none}}
+.toast{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:10px 16px;border-radius:8px;font-size:14px;max-width:calc(100% - 32px);z-index:5}
+[hidden]{display:none!important}
+/*DOC_CSS*/
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="brandbar">
+    <div class="t"><span>Certificates &amp; Recommendations</span><h1>مكتب الشهادات والتوصيات</h1></div>
+    <div class="me" id="me" hidden>
+      <img class="avatar" id="meImg" alt="">
+      <div class="small"><div id="meName" style="font-weight:600"></div><button class="btn3" style="padding:2px 10px;font-size:12px" data-act="logout">خروج</button></div>
+    </div>
+  </header>
+  <main id="app"><div class="empty"><span class="spin"></span> جاري التحميل</div></main>
+</div>
+<div id="stage"></div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+/*DOC_JS*/
+</script>
+<script>
+const S={af:{},token:null,profile:null,items:[],templates:[],view:'auth',authTab:'login',mode:null,editId:null,form:{},busy:'',err:'',info:''};
+try{S.token=localStorage.getItem('cr_token');}catch(e){}
+const $=(s,r=document)=>r.querySelector(s);
+const STATUS={submitted:'قيد المراجعة',needs_info:'مطلوب منك تعديل',edit_requested:'طلب تعديل مرسل',approved:'معتمدة – جاهزة للتحميل',rejected:'مرفوض'};
+const fmt=t=>t?new Date(t).toLocaleDateString('ar-AE-u-nu-latn',{day:'numeric',month:'short',year:'numeric'}):'';
+function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>t.hidden=true,3800);}
+function setToken(t){S.token=t;try{t?localStorage.setItem('cr_token',t):localStorage.removeItem('cr_token');}catch(e){}}
+
+async function api(path,opts={}){
+  try{
+    const r=await fetch('/api/'+path,{method:opts.method||(opts.body?'POST':'GET'),headers:{'content-type':'application/json',...(S.token?{authorization:'Bearer '+S.token}:{})},body:opts.body?JSON.stringify(opts.body):undefined});
+    const j=await r.json().catch(()=>({ok:false,error:'خطأ غير متوقع'}));
+    if(r.status===401&&S.token&&!opts.noLogout){ setToken(null); S.profile=null; S.view='auth'; S.err='انتهت الجلسة، سجّل الدخول من جديد.'; render(); }
+    return j;
+  }catch(e){ return {ok:false,error:'تعذر الاتصال، تأكد من الإنترنت وحاول مرة ثانية.'}; }
+}
+
+/* photos */
+function loadImg(src){return new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=()=>rej(new Error('صيغة الصورة غير مدعومة'));i.src=src;});}
+async function squareThumb(file){
+  const url=URL.createObjectURL(file); const img=await loadImg(url); URL.revokeObjectURL(url);
+  const s=Math.min(img.width,img.height); const c=document.createElement('canvas'); c.width=c.height=160;
+  c.getContext('2d').drawImage(img,(img.width-s)/2,(img.height-s)/2,s,s,0,0,160,160);
+  return c.toDataURL('image/jpeg',0.8);
+}
+
+/* CV text extraction (in the browser; the file itself is never uploaded) */
+function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=()=>rej(new Error('تعذر تحميل أداة القراءة'));document.head.appendChild(s);});}
+async function extractCv(file){
+  const buf=await file.arrayBuffer(); const name=file.name.toLowerCase();
+  if(name.endsWith('.pdf')||file.type==='application/pdf'){
+    if(!window.pdfjsLib){ await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'); await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js'); }
+    const pdf=await window.pdfjsLib.getDocument({data:buf}).promise; let out='';
+    for(let i=1;i<=Math.min(pdf.numPages,8);i++){ const tc=await (await pdf.getPage(i)).getTextContent(); out+=tc.items.map(x=>x.str).join(' ')+'\n'; }
+    return out;
+  }
+  if(name.endsWith('.docx')){
+    if(!window.mammoth) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js');
+    return (await window.mammoth.extractRawText({arrayBuffer:buf})).value;
+  }
+  throw new Error('ارفع السيرة بصيغة PDF أو Word (docx)، أو الصق نصها.');
+}
+
+/* render */
+function render(){
+  const me=$('#me');
+  if(S.profile){ me.hidden=false; $('#meName').textContent=S.profile.name||S.profile.username; const im=$('#meImg'); if(S.profile.photo) im.src=S.profile.photo; else im.removeAttribute('src'); }
+  else me.hidden=true;
+  $('#app').innerHTML=S.view==='auth'?authView():S.view==='form'?formView():homeView();
+  bind();
+}
+
+function authView(){
+  const t=S.authTab;
+  return `<div class="panel stack" style="max-width:460px;margin:0 auto">
+    <p class="muted">من هنا تطلب شهادة أو رسالة توصية من مرشدك الأكاديمي، وتتابع حالتها وتحمّلها بأي وقت.</p>
+    <div class="tabs" role="tablist">
+      <button role="tab" aria-selected="${t==='login'}" data-act="authTab" data-v="login">دخول</button>
+      <button role="tab" aria-selected="${t==='register'}" data-act="authTab" data-v="register">حساب جديد</button>
+      <button role="tab" aria-selected="${t==='reset'}" data-act="authTab" data-v="reset">نسيت كلمة المرور</button>
+    </div>
+    ${S.err?`<div class="err">${esc(S.err)}</div>`:''}${S.info?`<div class="okmsg">${esc(S.info)}</div>`:''}
+    <form id="authForm" class="stack" novalidate>
+    ${t==='login'?`
+      <label>اسم المستخدم<input id="a_user" value="${esc(S.af.a_user||'')}" dir="ltr" autocomplete="username" autocapitalize="none"></label>
+      <label>كلمة المرور<input id="a_pass" type="password" dir="ltr" autocomplete="current-password"></label>
+      <button class="btn" type="submit">${S.busy?'<span class="spin"></span> ':''}دخول</button>`
+    :t==='register'?`
+      <div class="photo-pick">
+        <img class="avatar" id="r_prev" alt="" ${S.regPhoto?`src="${S.regPhoto}"`:''}>
+        <label style="flex:1">صورتك الشخصية<span class="hint">عشان يتذكرك المرشد. صورة واضحة للوجه.</span><input id="r_photo" type="file" accept="image/*"></label>
+      </div>
+      <label>الاسم الكامل<input id="r_name" value="${esc(S.af.r_name||'')}" autocomplete="name"></label>
+      <label>اسم المستخدم<span class="hint">حروف إنجليزية أو أرقام، مثل abdulla.f</span><input id="r_user" value="${esc(S.af.r_user||'')}" dir="ltr" autocomplete="username" autocapitalize="none"></label>
+      <label>الإيميل<span class="hint">أي إيميل، للتواصل معك</span><input id="r_email" value="${esc(S.af.r_email||'')}" type="email" dir="ltr" autocomplete="email"></label>
+      <label>كلمة المرور<span class="hint">8 أحرف أو أكثر</span><input id="r_pass" type="password" dir="ltr" autocomplete="new-password"></label>
+      <button class="btn" type="submit">${S.busy?'<span class="spin"></span> ':''}إنشاء الحساب</button>`
+    :`
+      <p class="small muted">تواصل مع المرشد يعطيك رمز استعادة، ثم اكتبه هنا مع كلمة المرور الجديدة.</p>
+      <label>اسم المستخدم<input id="x_user" value="${esc(S.af.x_user||'')}" dir="ltr" autocapitalize="none"></label>
+      <label>رمز الاستعادة<input id="x_code" value="${esc(S.af.x_code||'')}" inputmode="numeric" dir="ltr" maxlength="6"></label>
+      <label>كلمة مرور جديدة<input id="x_pass" type="password" dir="ltr" autocomplete="new-password"></label>
+      <button class="btn" type="submit">${S.busy?'<span class="spin"></span> ':''}تغيير كلمة المرور والدخول</button>`}
+    </form></div>`;
+}
+
+function homeView(){
+  const done=S.items.filter(i=>i.status==='approved').length, open=S.items.filter(i=>!['approved','rejected'].includes(i.status)).length;
+  return `<div class="stack">
+    ${S.profile&&!S.profile.photo?`<div class="note">أضف صورتك الشخصية عشان يتعرف عليك المرشد. <label class="btn2" style="display:inline-flex;padding:4px 10px;margin-inline-start:6px;cursor:pointer">رفع صورة<input id="p_photo" type="file" accept="image/*" hidden></label></div>`:''}
+    <section class="stack"><h2>اطلب وثيقة</h2>
+      <div class="choices">
+        ${S.templates.length?`<button class="choice" data-act="new" data-v="tpl"><b>شهادة جاهزة</b><span class="small muted">نماذج معتمدة مسبقاً، تكتب اسمك وبس</span></button>`:''}
+        <button class="choice" data-act="new" data-v="cert"><b>شهادة تقدير أو مشاركة</b><span class="small muted">اكتب إنجازك وبنصيغه بدقة</span></button>
+        <button class="choice" data-act="new" data-v="rec"><b>رسالة توصية</b><span class="small muted">ارفع سيرتك الذاتية وأهم إنجازاتك</span></button>
+      </div></section>
+    <section class="stack">
+      <div class="card-h"><h2>طلباتي</h2><span class="meta">${done} جاهزة · ${open} قيد العمل</span></div>
+      ${S.items.length?S.items.map(itemCard).join(''):`<div class="empty">ما عندك طلبات للحين. اختر نوع الوثيقة من فوق وابدأ.</div>`}
+    </section></div>`;
+}
+function itemTitle(i){
+  if(i.type==='rec') return 'رسالة توصية'+(i.input.target?' — '+i.input.target:'');
+  const p=i.title?{title:i.title,program:i.program}:(i.input.polished||{});
+  return (p.title||'شهادة')+((p.program||i.input.program)?' — '+(p.program||i.input.program):'');
+}
+function itemCard(i){
+  const open=['submitted','needs_info','edit_requested'].includes(i.status);
+  const canEdit=['submitted','needs_info'].includes(i.status);
+  const wait=i.nextReminderAt&&i.nextReminderAt>Date.now();
+  const d=i.input.delivery;
+  return `<article class="card">
+    <div class="card-h"><div><h3>${esc(itemTitle(i))}</h3><div class="meta"><span>${esc(i.id)}</span><span>أُرسل ${fmt(i.createdAt)}</span>${i.approvedAt?`<span>اعتُمد ${fmt(i.approvedAt)}</span>`:''}${i.input.deadline?`<span>الموعد النهائي ${esc(i.input.deadline)}</span>`:''}</div></div>
+      <span class="chip s-${i.status}">${STATUS[i.status]||i.status}</span></div>
+    ${i.advisorNote?`<div class="note"><b>ملاحظة المرشد:</b> ${esc(i.advisorNote)}</div>`:''}
+    ${i.status==='edit_requested'&&i.studentNote?`<div class="small muted">طلبك: ${esc(i.studentNote)}</div>`:''}
+    ${i.type==='rec'&&d?`<div class="small muted">التسليم: ${d.mode==='self'?'لك':d.mode==='email'?'إلى '+esc(d.email):'رفع على '+esc(d.platform)}${i.sentAt?` · تم ${fmt(i.sentAt)}`:''}</div>`:''}
+    <div class="actions">
+      ${i.status==='approved'?`<button class="btn" data-act="download" data-id="${esc(i.id)}">تحميل PDF</button>`:''}
+      ${canEdit?`<button class="btn2" data-act="edit" data-id="${esc(i.id)}">تعديل بيانات الطلب</button>`:''}
+      ${open?`<button class="btn3" data-act="remind" data-id="${esc(i.id)}" ${wait?'disabled':''}>${wait?'تذكير متاح '+fmt(i.nextReminderAt):'إرسال تذكير'}</button>`:''}
+      ${['approved','rejected'].includes(i.status)?`<button class="btn3" data-act="askEdit" data-id="${esc(i.id)}">طلب تعديل</button>`:''}
+    </div>
+    <div class="stack" id="ask-${esc(i.id)}" hidden>
+      <label>وش التعديل اللي تبيه؟<textarea id="ask_${esc(i.id)}" placeholder="مثال: الاسم الصحيح Abdulla Obaid Alfalasi"></textarea></label>
+      <div class="actions"><button class="btn" data-act="sendEdit" data-id="${esc(i.id)}">إرسال طلب التعديل</button></div>
+    </div></article>`;
+}
+
+/* forms */
+const F=()=>S.form;
+function field(id,label,o={}){
+  const v=F()[id]??''; const hint=o.hint?`<span class="hint">${o.hint}</span>`:'';
+  if(o.area) return `<label>${label}${hint}<textarea id="f_${id}" data-k="${id}" ${o.ph?`placeholder="${esc(o.ph)}"`:''}>${esc(v)}</textarea></label>`;
+  return `<label>${label}${hint}<input id="f_${id}" data-k="${id}" value="${esc(v)}" ${o.type?`type="${o.type}"`:''} ${o.ltr?'dir="ltr"':''} ${o.ph?`placeholder="${esc(o.ph)}"`:''}></label>`;
+}
+function commonFields(withLang=true){
+  return `<div class="row">${field('name','الاسم كما تبيه في الوثيقة',{hint:'بنفس لغة الوثيقة'})}${field('contactEmail','إيميل التواصل',{type:'email',ltr:true})}</div>
+  <div class="row"><label>الصيغة<select id="f_gender" data-k="gender"><option value="m" ${F().gender!=='f'?'selected':''}>طالب</option><option value="f" ${F().gender==='f'?'selected':''}>طالبة</option></select></label>
+  ${withLang?`<label>لغة الوثيقة<select id="f_lang" data-k="lang"><option value="en" ${F().lang!=='ar'?'selected':''}>English</option><option value="ar" ${F().lang==='ar'?'selected':''}>العربية</option></select></label>`:''}</div>`;
+}
+function miniPreview(p,name,lang){
+  const en=lang!=='ar';
+  return `<div class="panel" style="border:3px double #4B4733;border-radius:2px;background:#fff;color:#3d3a2c;text-align:center;padding:16px" dir="${en?'ltr':'rtl'}">
+    <div style="font-family:var(--serif);color:#6FA6C0;font-size:21px;text-transform:uppercase">${esc(p.title||'')}</div>
+    <div>${en?'This certifies that':'تشهد هذه الوثيقة بأن'}</div>
+    <div style="font-size:17px;letter-spacing:.03em;margin:4px 0">${esc((name||(en?'YOUR NAME':'اسمك')).toUpperCase())}</div>
+    <div class="small">${esc(p.lead||'')} <b>${esc(p.program||'')}</b></div>
+    ${p.body?`<div class="small" style="margin-top:6px">${esc(p.body)}</div>`:''}</div>`;
+}
+function formView(){
+  const m=S.mode,f=F(); let body='';
+  if(m==='tpl'){
+    const t=S.templates.find(x=>x.id===f.templateId);
+    body=`<div class="tpls">${S.templates.map(x=>`<button type="button" class="choice tpl" aria-pressed="${x.id===f.templateId}" data-act="pickTpl" data-id="${esc(x.id)}">
+      <span><b class="${x.lang==='en'?'en':''}">${esc(x.label)}</b>${x.description?`<br><span class="small muted">${esc(x.description)}</span>`:''}</span><span class="small muted">${x.lang==='en'?'English':'عربي'}</span></button>`).join('')}</div>
+      ${t?`<div id="mp">${miniPreview(t.fields,f.name,t.lang)}</div>`:''}
+      ${commonFields(false)}${field('achievement','ملاحظة للمرشد (اختياري)',{area:true,ph:'مثال: شاركت في الدفعة الثانية'})}`;
+  }else if(m==='cert'){
+    body=`${commonFields()}
+      <div class="row">${field('program','اسم البرنامج أو الفعالية',{ph:'Silicon Valley Summer Program – Mustaqbali'})}${field('period','التاريخ أو الفترة',{ph:'2025'})}</div>
+      ${field('achievement','وش الإنجاز اللي قدمته؟',{area:true,hint:'اكتبه بأسلوبك وبالتفصيل. الذكاء الاصطناعي يصيغه بدقة والمرشد يراجعه.',ph:'مثال: قدت فريق من 4 أشخاص وفزنا بالمركز الأول في تحدي النقاط، وقدمت العرض النهائي...'})}`;
+  }else{
+    const d=f.delivery||{mode:'self'};
+    body=`${commonFields()}
+      ${field('target','على وش تقدّم؟',{hint:'البرنامج أو الوظيفة والجهة',ph:'MSc Computer Science – Imperial College London'})}
+      ${field('relationship','وش علاقتك بالمرشد؟',{area:true,hint:'كيف ومتى عرفك',ph:'طالب في برنامج مستقبلي – Silicon Valley Summer Program 2025'})}
+      <label>السيرة الذاتية<span class="hint">PDF أو Word. الملف يُقرأ في جهازك ويوصل للمرشد نصه فقط.</span><input id="f_cv" type="file" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"></label>
+      ${S.busy==='cv'?`<div class="small muted"><span class="spin"></span> جاري قراءة السيرة…</div>`:f.cvName?`<div class="small muted">تمت قراءة: ${esc(f.cvName)} (${(f.cvText||'').length} حرف)</div>`:''}
+      <details><summary class="small" style="cursor:pointer">أو الصق نص السيرة بنفسك</summary>${field('cvText','',{area:true})}</details>
+      ${field('achievements','أهم الإنجازات اللي تبي المرشد يذكرها',{area:true})}
+      ${field('skills','أهم المهارات',{area:true,ph:'قيادة الفريق، تحليل البيانات، Python، العرض والإلقاء'})}
+      ${field('deadline','آخر موعد للتسليم',{type:'date',ltr:true})}
+      <fieldset class="stack" style="border:1px solid var(--line);border-radius:10px;padding:14px"><legend style="padding:0 6px;font-weight:600">وين تنرسل الرسالة؟</legend>
+        <label class="radio"><input type="radio" name="dm" value="self" data-dm ${d.mode==='self'?'checked':''}> أحملها أنا من هنا</label>
+        <label class="radio"><input type="radio" name="dm" value="email" data-dm ${d.mode==='email'?'checked':''}> المرشد يرسلها لإيميل جهة (الجامعة أو جهة العمل)</label>
+        <label class="radio"><input type="radio" name="dm" value="platform" data-dm ${d.mode==='platform'?'checked':''}> المرشد يرفعها على منصة</label>
+        ${d.mode==='email'?`<label>إيميل الجهة<input id="f_demail" data-dk="email" type="email" dir="ltr" value="${esc(d.email||'')}"></label>`:''}
+        ${d.mode==='platform'?`<label>اسم المنصة<input id="f_dplat" data-dk="platform" value="${esc(d.platform||'')}" placeholder="UCAS / Common App / بوابة الجامعة"></label>
+          <label>الرابط<input id="f_dlink" data-dk="link" dir="ltr" value="${esc(d.link||'')}"></label>
+          <label>تعليمات الرفع<textarea id="f_dnotes" data-dk="notes" placeholder="مثال: بيوصلك إيميل دعوة من الجامعة باسمي">${esc(d.notes||'')}</textarea></label>`:''}
+      </fieldset>`;
+  }
+  const head=m==='tpl'?'شهادة جاهزة':m==='cert'?'شهادة تقدير أو مشاركة':'رسالة توصية';
+  return `<form id="reqForm" class="panel stack" novalidate>
+    <div class="card-h"><h2>${S.editId?'تعديل الطلب':head}</h2><button type="button" class="btn3" data-act="back">رجوع</button></div>
+    ${S.err?`<div class="err">${esc(S.err)}</div>`:''}
+    ${body}
+    ${S.editId?field('note','وش عدّلت؟ (يوصل للمرشد)'):''}
+    <div class="actions"><button class="btn" type="submit" ${S.busy?'disabled':''}>${S.busy==='submit'?'<span class="spin"></span> ':''}${S.editId?'حفظ وإعادة الإرسال':'إرسال للمرشد'}</button></div>
+  </form>`;
+}
+
+function bind(){
+  const app=$('#app');
+  app.querySelectorAll('[data-k]').forEach(el=>el.addEventListener('input',()=>{F()[el.dataset.k]=el.value; if(el.dataset.k==='name'&&S.mode==='tpl') refreshMini();}));
+  app.querySelectorAll('[data-dk]').forEach(el=>el.addEventListener('input',()=>{F().delivery[el.dataset.dk]=el.value;}));
+  app.querySelectorAll('[data-dm]').forEach(el=>el.addEventListener('change',()=>{F().delivery={...(F().delivery||{}),mode:el.value};render();}));
+  const cv=$('#f_cv'); if(cv) cv.addEventListener('change',async()=>{ const file=cv.files[0]; if(!file) return; S.busy='cv'; render();
+    try{ const t=(await extractCv(file)).replace(/\s+\n/g,'\n').trim(); if(t.length<40) throw new Error('ما قدرنا نقرأ نص السيرة (يمكن صورة). الصق النص بنفسك.'); F().cvText=t.slice(0,15000); F().cvName=file.name; }catch(e){ toast(e.message); }
+    S.busy=''; render(); });
+  const rp=$('#r_photo'); if(rp) rp.addEventListener('change',async()=>{ try{ S.regPhoto=await squareThumb(rp.files[0]); $('#r_prev').src=S.regPhoto; }catch(e){ toast(e.message); } });
+  const pp=$('#p_photo'); if(pp) pp.addEventListener('change',async()=>{ try{ const ph=await squareThumb(pp.files[0]); const r=await api('photo',{body:{photo:ph}}); if(r.ok){ S.profile=r.profile; render(); toast('تم حفظ صورتك'); } else toast(r.error); }catch(e){ toast(e.message); } });
+  const af=$('#authForm'); if(af) af.addEventListener('submit',e=>{e.preventDefault();doAuth();});
+  const rf=$('#reqForm'); if(rf) rf.addEventListener('submit',e=>{e.preventDefault();submitForm();});
+}
+function refreshMini(){ const t=S.templates.find(x=>x.id===F().templateId); const mp=$('#mp'); if(t&&mp) mp.innerHTML=miniPreview(t.fields,F().name,t.lang); }
+
+/* actions */
+async function doAuth(){
+  if(S.busy) return;
+  const t=S.authTab; let r;
+  document.querySelectorAll('#authForm input:not([type=file])').forEach(el=>{ if(el.type!=='password') S.af[el.id]=el.value; });
+  const pw={}; document.querySelectorAll('#authForm input[type=password]').forEach(el=>pw[el.id]=el.value);
+  const v=id=>id in pw?pw[id]:(S.af[id]||'');
+  S.err=''; S.info=''; S.busy='auth'; render();
+  if(t==='login') r=await api('login',{body:{username:v('a_user'),password:v('a_pass')},noLogout:true});
+  else if(t==='register') r=await api('register',{body:{name:v('r_name'),username:v('r_user'),email:v('r_email'),password:v('r_pass'),photo:S.regPhoto},noLogout:true});
+  else r=await api('reset',{body:{username:v('x_user'),code:v('x_code'),password:v('x_pass')},noLogout:true});
+  S.busy='';
+  if(!r.ok){ S.err=r.error; render(); return; }
+  setToken(r.token); await load();
+}
+async function load(){
+  const r=await api('me');
+  if(!r.ok){ S.view='auth'; render(); return; }
+  S.profile=r.profile; S.items=r.items||[]; S.templates=r.templates||[]; S.view='home'; S.err=''; render();
+}
+function startForm(mode,item){
+  S.mode=mode; S.err=''; S.editId=item?item.id:null; const p=S.profile||{};
+  if(item){ S.form={name:item.name,contactEmail:item.contactEmail,gender:item.gender,lang:item.lang,...item.input,delivery:{...(item.input.delivery||{mode:'self'})}}; if(item.input.templateId) S.mode='tpl'; else S.mode=item.type; }
+  else S.form={name:p.name||'',contactEmail:p.email||'',gender:'m',lang:'en',delivery:{mode:'self'},templateId:mode==='tpl'&&S.templates[0]?S.templates[0].id:''};
+  S.view='form'; render(); scrollTo(0,0);
+}
+async function submitForm(){
+  if(S.busy) return; S.busy='submit'; S.err=''; render();
+  const payload={...S.form,type:S.mode==='rec'?'rec':'cert'}; if(S.mode!=='tpl') delete payload.templateId;
+  const wasEdit=!!S.editId;
+  const r=wasEdit?await api('requests/'+encodeURIComponent(S.editId),{method:'PUT',body:payload}):await api('requests',{body:payload});
+  S.busy='';
+  if(!r.ok){ S.err=r.error; render(); scrollTo(0,0); return; }
+  S.items=r.items; S.view='home'; S.editId=null; render(); toast(wasEdit?'تم حفظ التعديل':'وصل طلبك للمرشد');
+}
+async function download(id,btn){
+  btn.disabled=true; btn.innerHTML='<span class="spin"></span> جاري التجهيز';
+  try{
+    const r=await api('requests/'+encodeURIComponent(id)+'/document');
+    if(!r.ok) throw new Error(r.error);
+    const c={...r.doc,verify:location.host+'/v/'+r.doc.ref};
+    const pdf=await makePdf(c);
+    const url=URL.createObjectURL(pdf.blob);
+    const a=document.createElement('a'); a.href=url; a.download=pdf.fname; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),60000);
+    toast('تم تحميل الملف');
+  }catch(e){ toast(e.message||'تعذر التحميل'); }
+  btn.disabled=false; btn.textContent='تحميل PDF';
+}
+document.addEventListener('click',async e=>{
+  const b=e.target.closest('[data-act]'); if(!b) return;
+  const a=b.dataset.act,id=b.dataset.id;
+  if(a==='authTab'){ S.authTab=b.dataset.v; S.err=''; S.info=''; render(); }
+  else if(a==='logout'){ api('logout',{body:{}}); setToken(null); S.profile=null; S.items=[]; S.view='auth'; render(); }
+  else if(a==='new') startForm(b.dataset.v);
+  else if(a==='back'){ S.view='home'; S.editId=null; render(); }
+  else if(a==='pickTpl'){ F().templateId=id; render(); }
+  else if(a==='edit') startForm(null,S.items.find(x=>x.id===id));
+  else if(a==='download') download(id,b);
+  else if(a==='remind'){ b.disabled=true; const r=await api('requests/'+encodeURIComponent(id)+'/remind',{body:{}}); if(r.ok){ S.items=r.items; render(); toast('وصل التذكير للمرشد'); } else { toast(r.error); b.disabled=false; } }
+  else if(a==='askEdit'){ const box=document.getElementById('ask-'+id); box.hidden=!box.hidden; }
+  else if(a==='sendEdit'){ const t=document.getElementById('ask_'+id).value; b.disabled=true; const r=await api('requests/'+encodeURIComponent(id)+'/message',{body:{text:t}}); if(r.ok){ S.items=r.items; render(); toast('وصل طلب التعديل للمرشد'); } else { toast(r.error); b.disabled=false; } }
+});
+if(S.token) load(); else { S.view='auth'; render(); }
+</script>
+</body>
+</html>

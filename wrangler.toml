@@ -1,0 +1,9 @@
+name = "certs"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+workers_dev = true
+
+[[d1_databases]]
+binding = "DB"
+database_name = "certs-office"
+database_id = "5e21e6f8-24aa-4669-8042-0fa0134f0cfa"
